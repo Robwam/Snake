@@ -17,7 +17,7 @@ namespace Snake
             ColumnOffset = columnOffset;
         }
         
-        public Direction Oppsote()
+        public Direction Opposite()
         {
             return new Direction(-RowOffset, -ColumnOffset);
         }

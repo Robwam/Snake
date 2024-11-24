@@ -13,6 +13,7 @@ namespace Snake
         public int Score { get; private set; }
         public bool GameOver { get; private set; }
 
+        private readonly LinkedList<Direction> dirChanges = new LinkedList<Direction>();
         private readonly LinkedList<Position> snakePositions = new LinkedList<Position>();
         private readonly Random random = new Random();
 
@@ -49,7 +50,7 @@ namespace Snake
             {
                 for (int c = 0; c < Cols; c++)
                 {
-                    if (Grid[r,c] == GridValue.Emtpy)
+                    if (Grid[r,c] == GridValue.Empty)
                     {
                         yield return new Position(r, c);
                     }
@@ -95,12 +96,36 @@ namespace Snake
         {
             var tail = snakePositions.Last.Value;
             snakePositions.RemoveLast();
-            Grid[tail.Row, tail.Col] = GridValue.Emtpy;
+            Grid[tail.Row, tail.Col] = GridValue.Empty;
+        }
+
+        private Direction GetLastDirection()
+        {
+            if (dirChanges.Count == 0)
+            {
+                return Dir;
+            }
+            else
+            {
+                return dirChanges.Last.Value;
+            }
+        }
+
+        private bool CanChangeDirection(Direction newDir)
+        {
+            if (dirChanges.Count == 2)
+            {
+                return false;
+            }
+
+            Direction lastDir = GetLastDirection();
+            return newDir != lastDir && newDir != lastDir.Opposite();
         }
 
         public void ChangeDirection(Direction dir)
         {
-            Dir = dir;
+            // if change can be made -> add to buffer
+            if (CanChangeDirection(dir)) dirChanges.AddLast(dir);
         }
 
         private bool OutsideGrid(Position pos)
@@ -117,7 +142,7 @@ namespace Snake
 
             if (newHeadPos == TailPosition()) // Head will not collide with tail as tail would move out of way
             {
-                return GridValue.Emtpy;
+                return GridValue.Empty;
             }
 
             return Grid[newHeadPos.Row, newHeadPos.Col];
@@ -125,6 +150,12 @@ namespace Snake
 
         public void Move()
         {
+            if (dirChanges.Count > 0)
+            {
+                Dir = dirChanges.First.Value;
+                dirChanges.RemoveFirst();
+            }
+            
             var newHeadPos = HeadPosition().Translate(Dir);
             GridValue hit = WillHit(newHeadPos);
 
@@ -132,7 +163,7 @@ namespace Snake
             {
                 GameOver = true;
             }
-            else if (hit == GridValue.Emtpy)
+            else if (hit == GridValue.Empty)
             {
                 RemoveTail();
                 AddHead(newHeadPos);

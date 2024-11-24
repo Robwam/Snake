@@ -8,7 +8,7 @@ namespace Snake
 {
     public enum GridValue
     {
-        Emtpy,
+        Empty,
         Snake,
         Food,
         Outside
